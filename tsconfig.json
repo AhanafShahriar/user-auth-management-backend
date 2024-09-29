@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2017", // Use ES2017 for broader feature support
+    "module": "commonjs", // Stick with commonjs for Node.js
+    "outDir": "./dist", // Output compiled files here
+    "rootDir": "./src", // Root folder for source files
+    "strict": true, // Enable strict type checking
+    "moduleResolution": "node", // Resolve modules as Node.js does
+    "typeRoots": ["./src", "./node_modules/@types"],
+    "esModuleInterop": true, // Required for interop with ES modules
+    "skipLibCheck": true, // Skip type checking of declaration files
+    "types": ["node", "express"] // Only load these type definitions
+  },
+  "include": ["src/**/*"], // Include all TypeScript files in src
+  "exclude": ["node_modules"] // Exclude node_modules folder
+}
