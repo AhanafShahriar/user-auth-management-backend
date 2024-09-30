@@ -12,7 +12,7 @@ const registerUser = async (req: Request, res: Response) => {
 
   try {
     await pool.query(
-      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3)",
       [name, email, hashedPassword]
     );
     res.status(201).json({ message: "User registered successfully!" });
@@ -26,8 +26,8 @@ const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {
-    const [rows]: any = await pool.query(
-      "SELECT * FROM users WHERE email = ?",
+    const { rows }: any = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
       [email]
     );
 
@@ -44,7 +44,7 @@ const loginUser = async (req: Request, res: Response) => {
     }
 
     if (await bcrypt.compare(password, user.password)) {
-      await pool.query("UPDATE users SET last_login = NOW() WHERE id = ?", [
+      await pool.query("UPDATE users SET last_login = NOW() WHERE id = $1", [
         user.id,
       ]);
 
@@ -72,14 +72,14 @@ const blockUser = async (req: Request, res: Response) => {
       .status(400)
       .json({ error: "Invalid input: user IDs should be an array." });
   }
-  const placeholders = userIds.map(() => "?").join(",");
+  const placeholders = userIds.map((_, index) => `$${index + 1}`).join(",");
   try {
-    const [result]: any = await pool.query(
+    const { rowCount } = await pool.query(
       `UPDATE users SET status = 'blocked' WHERE id IN (${placeholders})`,
       userIds
     );
 
-    res.json({ message: "Users blocked successfully", result });
+    res.json({ message: "Users blocked successfully", rowCount });
   } catch (err) {
     console.error(err);
     res
@@ -95,13 +95,13 @@ const deleteUser = async (req: Request, res: Response) => {
       .status(400)
       .json({ error: "Invalid input: user IDs should be an array." });
   }
-  const placeholders = userIds.map(() => "?").join(",");
+  const placeholders = userIds.map((_, index) => `$${index + 1}`).join(",");
   try {
-    const [result]: any = await pool.query(
+    const { rowCount } = await pool.query(
       `DELETE FROM users WHERE id IN (${placeholders})`,
       userIds
     );
-    res.json({ message: "Users deleted successfully", result });
+    res.json({ message: "Users deleted successfully", rowCount });
   } catch (err) {
     console.error(err);
     res
@@ -117,13 +117,13 @@ const unblockUser = async (req: Request, res: Response) => {
       .status(400)
       .json({ error: "Invalid input: user IDs should be an array." });
   }
-  const placeholders = userIds.map(() => "?").join(",");
+  const placeholders = userIds.map((_, index) => `$${index + 1}`).join(",");
   try {
-    const [result]: any = await pool.query(
+    const { rowCount } = await pool.query(
       `UPDATE users SET status = 'active' WHERE id IN (${placeholders})`,
       userIds
     );
-    res.json({ message: "Users unblocked successfully", result });
+    res.json({ message: "Users unblocked successfully", rowCount });
   } catch (err) {
     console.error(err);
     res.status(500).json({
@@ -135,7 +135,7 @@ const unblockUser = async (req: Request, res: Response) => {
 
 const getUsers = async (req: Request, res: Response) => {
   try {
-    const [rows]: any = await pool.query("SELECT * FROM users");
+    const { rows }: any = await pool.query("SELECT * FROM users");
     res.status(200).json(rows);
   } catch (err) {
     console.error("Error fetching users:", err);
