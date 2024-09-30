@@ -11,7 +11,7 @@ const registerUser = async (req: Request, res: Response) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
-    await pool.execute(
+    await pool.query(
       "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
       [name, email, hashedPassword]
     );
@@ -26,7 +26,7 @@ const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {
-    const [rows]: any = await pool.execute(
+    const [rows]: any = await pool.query(
       "SELECT * FROM users WHERE email = ?",
       [email]
     );
@@ -44,7 +44,7 @@ const loginUser = async (req: Request, res: Response) => {
     }
 
     if (await bcrypt.compare(password, user.password)) {
-      await pool.execute("UPDATE users SET last_login = NOW() WHERE id = ?", [
+      await pool.query("UPDATE users SET last_login = NOW() WHERE id = ?", [
         user.id,
       ]);
 
@@ -74,7 +74,7 @@ const blockUser = async (req: Request, res: Response) => {
   }
   const placeholders = userIds.map(() => "?").join(",");
   try {
-    const [result]: any = await pool.execute(
+    const [result]: any = await pool.query(
       `UPDATE users SET status = 'blocked' WHERE id IN (${placeholders})`,
       userIds
     );
@@ -97,7 +97,7 @@ const deleteUser = async (req: Request, res: Response) => {
   }
   const placeholders = userIds.map(() => "?").join(",");
   try {
-    const [result]: any = await pool.execute(
+    const [result]: any = await pool.query(
       `DELETE FROM users WHERE id IN (${placeholders})`,
       userIds
     );
@@ -119,7 +119,7 @@ const unblockUser = async (req: Request, res: Response) => {
   }
   const placeholders = userIds.map(() => "?").join(",");
   try {
-    const [result]: any = await pool.execute(
+    const [result]: any = await pool.query(
       `UPDATE users SET status = 'active' WHERE id IN (${placeholders})`,
       userIds
     );
@@ -135,7 +135,7 @@ const unblockUser = async (req: Request, res: Response) => {
 
 const getUsers = async (req: Request, res: Response) => {
   try {
-    const [rows]: any = await pool.execute("SELECT * FROM users");
+    const [rows]: any = await pool.query("SELECT * FROM users");
     res.status(200).json(rows);
   } catch (err) {
     console.error("Error fetching users:", err);
