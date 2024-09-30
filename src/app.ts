@@ -7,7 +7,11 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://user-auth-management-frontend.onrender.com",
+  })
+);
 
 app.use(express.json());
 
